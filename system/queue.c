@@ -22,6 +22,12 @@ void	printqueue(struct queue *q)
 bool8	isempty(struct queue *q)
 {
 	//TODO
+	if(q->size == 0) {
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
 }
 
 /**
@@ -32,6 +38,12 @@ bool8	isempty(struct queue *q)
 bool8	nonempty(struct queue *q)
 {
 	//TODO - don't just check q's size because q could be NULL
+	if(q == NULL || q->size == 0) {
+		return FALSE;
+	}
+	else {
+		return TRUE;
+	}
 }
 
 
@@ -43,6 +55,12 @@ bool8	nonempty(struct queue *q)
 bool8	isfull(struct queue *q)
 {
 	//TODO - check if there are at least NPROC processes in the queue
+	if(q->size == NPROC) {
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
 }
 
 

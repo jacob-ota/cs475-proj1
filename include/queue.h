@@ -18,6 +18,7 @@ struct queue
 	// TODO - pointer to head qentry
 	// TODO - pointer to tail qentry
 	// TODO - size of queue
+	int32 size;
 };
 
 
