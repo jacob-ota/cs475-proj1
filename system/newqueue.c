@@ -10,8 +10,12 @@
 struct queue *newqueue(void)
 {
 	// TODO - allocate memory for a new Queue structure (required to be on heap)
+	struct queue *newQueue = (struct queue*) malloc(sizeof(struct queue));
 
 	// TODO - initialize the structure
-
+	newQueue->head = NULL;
+	newQueue->tail = NULL;
+	newQueue->size = 0;
 	// TODO - return pointer to the structure
+	return newQueue;
 }

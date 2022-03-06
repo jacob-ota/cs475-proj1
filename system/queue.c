@@ -12,6 +12,13 @@ void	printqueue(struct queue *q)
 	//TODO - print all contents from head to tail
 
 	//TODO - format should be [(pid,key), (pid,key), ...]
+	kprintf("[");
+	struct qentry *checkQ = q->head;
+	while(checkQ->nextMember != NULL) {
+		kprintf("(pid=%d), ", checkQ->pid);
+		checkQ = checkQ->nextMember;
+	}
+	kprintf("(pid=%d)]\n", checkQ->pid);
 }
 
 /**
@@ -22,7 +29,7 @@ void	printqueue(struct queue *q)
 bool8	isempty(struct queue *q)
 {
 	//TODO
-	if(q->size == 0) {
+	if(q->size == 0 || q == NULL) {
 		return TRUE;
 	}
 	else {
@@ -74,14 +81,32 @@ bool8	isfull(struct queue *q)
 pid32 enqueue(pid32 pid, struct queue *q)
 {
         //TODO - check if queue is full and if pid is illegal, and return SYSERR if either is true
-
+		if(isfull(q) || isbadpid(pid)) {
+			return SYSERR;
+		}
         //TODO - allocate space on heap for a new QEntry
-
+		struct qentry *newEntry = (struct qentry*)malloc(sizeof(struct qentry));
         //TODO - initialize the new QEntry
-
-        //TODO - insert into tail of queue
-
+		if(!isempty(q)) {
+			newEntry->nextMember = NULL;
+			newEntry->prevMember = q->tail;
+			newEntry->pid = pid;
+        	//TODO - insert into tail of queue
+			q->tail->nextMember = newEntry;
+			q->tail = newEntry;
+		}
+		else {
+			//if queue is empty
+			newEntry->nextMember = NULL;
+			newEntry->prevMember = NULL;
+			newEntry->pid = pid;
+        	//TODO - insert into tail of queue
+			q->tail = newEntry;
+			q->head = newEntry;
+		}
         //TODO - return the pid on success
+		q->size++;
+		return pid;
 }
 
 
@@ -93,14 +118,19 @@ pid32 enqueue(pid32 pid, struct queue *q)
 pid32 dequeue(struct queue *q)
 {
         //TODO - return EMPTY if queue is empty
-
+		if(isempty(q)) {
+			return EMPTY;
+		}
         //TODO - get the head entry of the queue
-
+		struct qentry *headEntry = q->head;
         //TODO - unlink the head entry from the rest
-
+		q->head = headEntry->nextMember;
         //TODO - free up the space on the heap
-
+		pid32 headPid = headEntry->pid;
+		free(headEntry, sizeof(struct qentry));
+		q->size--;
         //TODO - return the pid on success
+		return headPid;
 }
 
 
@@ -113,10 +143,26 @@ pid32 dequeue(struct queue *q)
 struct qentry *getbypid(pid32 pid, struct queue *q)
 {
 	//TODO - return NULL if queue is empty or if an illegal pid is given
-
+	if(isempty(q) || isbadpid(pid)) {
+		return NULL;
+	}
 	//TODO - find the qentry with the given pid
-
+	struct qentry *checkQ = q->head;
+	while(checkQ->nextMember != NULL) {
+		if(checkQ->pid == pid) {
+			return checkQ;
+		}
+		else {
+			checkQ = checkQ->nextMember;
+		}
+	}
 	//TODO - return a pointer to it
+	if(q->tail->pid == pid) {
+		return q->tail;
+	}
+	else {
+		return NULL;
+	}
 }
 
 /**
@@ -127,8 +173,11 @@ struct qentry *getbypid(pid32 pid, struct queue *q)
 pid32	getfirst(struct queue *q)
 {
 	//TODO - return EMPTY if queue is empty
-
+	if(isempty(q)) {
+		return EMPTY;
+	}
 	//TODO - remove process from head of queue and return its pid
+	return dequeue(q);
 }
 
 /**
@@ -139,8 +188,11 @@ pid32	getfirst(struct queue *q)
 pid32	getlast(struct queue *q)
 {
 	//TODO - return EMPTY if queue is empty
-
+	if(isempty(q)) {
+		return EMPTY;
+	}
 	//TODO - remove process from tail of queue and return its pid
+	return remove(q->tail->pid, q);
 }
 
 
@@ -154,10 +206,35 @@ pid32	getlast(struct queue *q)
 pid32	remove(pid32 pid, struct queue *q)
 {
 	//TODO - return EMPTY if queue is empty
-
+	if(isempty(q)) {
+		return EMPTY;
+	}
 	//TODO - return SYSERR if pid is illegal
-
+	if(isbadpid(pid)) {
+		return SYSERR;
+	}
 	//TODO - remove process identified by pid parameter from the queue and return its pid
-
+	struct qentry *foundEntry = getbypid(pid, q);
 	//TODO - if pid does not exist in the queue, return SYSERR
+	if(foundEntry == NULL) {
+		return SYSERR;
+	}
+	else {
+		pid32 foundEntryPid = foundEntry->pid;
+		if(foundEntry->prevMember == NULL) {
+			foundEntryPid = dequeue(q);
+		}
+		else if(foundEntry->nextMember == NULL) {
+			foundEntry->prevMember->nextMember = NULL;
+			foundEntryPid = foundEntry->pid;
+		}
+		else {
+			foundEntry->prevMember->nextMember = foundEntry->nextMember;
+			foundEntry->nextMember->prevMember = foundEntry->prevMember;
+			foundEntryPid = foundEntry->pid;
+		}
+		free(foundEntry, sizeof(struct qentry));
+		q->size--;
+		return foundEntryPid;
+	}
 }
